@@ -1,0 +1,52 @@
+
+# Input File to PlanSpecs.java
+---
+bambooServer : "http://192.168.252.1:8085"
+
+#Bamboo Proj Details
+bambooProjName : "testSpecProj"
+bambooProjKey : "TS"
+bambooProjDescription : "Project to test Bamboo Spec"
+
+#Bamboo Plan Details
+bambooPlanKey : "TS"
+bambooPlanName : "testSpecPlan"
+bambooPlanDescription : "Plan to test Bamboo Spec"
+
+#Bamboo Stage details
+bambooStageName : "Default Stage"
+
+#Bamboo Job details
+bambooJobName : "Default Job"
+bambooJobKey : "JOB1"
+
+#Task1 - VcsCheckoutTask
+vcsTaskDescription : "Checkout Default Repository"
+vcsRepoName : "tWeb2"
+
+#Task2 - Gradle Build Task
+gradleTaskDescription : "Gradle"
+gradleTargets : "build"
+
+#Task3 - Artifactory
+artiTaskDesc : "artifactory"
+artiUserName : "admin"
+artiPassword : "password"
+artiArtifactPath : "{\n  \"files\": [\n   {\n    \"pattern\": \"**/*.war\",\n    \"target\": \"example-repo-local\"\n   }\n  ]\n}"
+artiServerUrl : "http://192.168.252.1:8085"
+
+#Task4 - Tomcat Deploy
+tomTaskDescription : "deploy"
+tomServerUrl : "http://localhost:8088/manager"
+tomWarFilePath : "build\\libs\\testWeb-1.0-SNAPSHOT.war"
+tomUserName : "bamboo"
+tomEncPassword : "YCW7Iv5C7yA="
+tomAppContext : "/testSpec"
+
+#Source Repo Details (Github)
+repoPath : "parthjeet/testWebApp"
+repoBranch : "master"
+repoUserName : "parthjeet"
+repoEncPassword : "BAMSCRT@0@0@iOQ8jDtwPEP5tT7ZGrMrFg=="
+
+

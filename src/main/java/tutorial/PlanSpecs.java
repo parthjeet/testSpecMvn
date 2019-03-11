@@ -1,0 +1,159 @@
+package tutorial;
+
+import java.util.Map;
+
+import com.atlassian.bamboo.specs.api.BambooSpec;
+import com.atlassian.bamboo.specs.api.builders.AtlassianModule;
+import com.atlassian.bamboo.specs.api.builders.BambooKey;
+import com.atlassian.bamboo.specs.api.builders.BambooOid;
+import com.atlassian.bamboo.specs.api.builders.permission.PermissionType;
+import com.atlassian.bamboo.specs.api.builders.permission.Permissions;
+import com.atlassian.bamboo.specs.api.builders.permission.PlanPermissions;
+import com.atlassian.bamboo.specs.api.builders.plan.Job;
+import com.atlassian.bamboo.specs.api.builders.plan.Plan;
+import com.atlassian.bamboo.specs.api.builders.plan.PlanIdentifier;
+import com.atlassian.bamboo.specs.api.builders.plan.Stage;
+import com.atlassian.bamboo.specs.api.builders.plan.branches.BranchCleanup;
+import com.atlassian.bamboo.specs.api.builders.plan.branches.PlanBranchManagement;
+import com.atlassian.bamboo.specs.api.builders.plan.configuration.ConcurrentBuilds;
+import com.atlassian.bamboo.specs.api.builders.project.Project;
+import com.atlassian.bamboo.specs.api.builders.repository.VcsChangeDetection;
+import com.atlassian.bamboo.specs.api.builders.repository.VcsRepositoryIdentifier;
+import com.atlassian.bamboo.specs.api.builders.task.AnyTask;
+import com.atlassian.bamboo.specs.builders.repository.git.UserPasswordAuthentication;
+import com.atlassian.bamboo.specs.builders.repository.github.GitHubRepository;
+import com.atlassian.bamboo.specs.builders.repository.viewer.GitHubRepositoryViewer;
+import com.atlassian.bamboo.specs.builders.task.CheckoutItem;
+import com.atlassian.bamboo.specs.builders.task.VcsCheckoutTask;
+import com.atlassian.bamboo.specs.builders.trigger.RepositoryPollingTrigger;
+import com.atlassian.bamboo.specs.util.BambooServer;
+import com.atlassian.bamboo.specs.util.MapBuilder;
+
+
+import tutorial.Yml;
+
+@BambooSpec
+public class PlanSpecs {
+    
+    public Plan plan() {
+    	Yml yml = new Yml();
+    	Map<String, Object> ob1 = yml.getYml();
+        final Plan plan = new Plan(new Project()
+                .key(new BambooKey(ob1.get("bambooProjKey").toString()))
+                .name(ob1.get("bambooProjName").toString())
+                .description(ob1.get("bambooProjDescription").toString()),
+            ob1.get("bambooPlanName").toString(),
+            new BambooKey(ob1.get("bambooPlanKey").toString()))
+            .description(ob1.get("bambooPlanDescription").toString())
+            .pluginConfigurations(new ConcurrentBuilds())
+            .stages(new Stage(ob1.get("bambooStageName").toString())
+                    .jobs(new Job(ob1.get("bambooJobName").toString(),
+                            new BambooKey(ob1.get("bambooJobKey").toString()))
+                            .tasks(new VcsCheckoutTask()
+                                    .description(ob1.get("vcsTaskDescription").toString())
+                                    .checkoutItems(new CheckoutItem()
+                                            .repository(new VcsRepositoryIdentifier()
+                                                    .name(ob1.get("vcsRepoName").toString()))),
+                                new AnyTask(new AtlassianModule("org.swift.bamboo.groovy:gradle"))
+                                    .description(ob1.get("gradleTaskDescription").toString())
+                                    .configuration(new MapBuilder()
+                                            .put("projectFile", "")
+                                            .put("scriptLocationTypes", "")
+                                            .put("scriptLocation", "FILE")
+                                            .put("scriptBody", "")
+                                            .put("label", "gradle")
+                                            .put("testChecked", "")
+                                            .put("targets", ob1.get("gradleTargets").toString())
+                                            .put("script", "")
+                                            .put("testDirectoryOption", "standardTestDirectory")
+                                            .put("environmentVariables", "")
+                                            .put("testResultsDirectory", "**/*reports/*.xml,**/*results/*.xml")
+                                            .put("buildJdk", "JDK 1.8")
+                                            .put("arguments", "")
+                                            .put("workingSubDirectory", "")
+                                            .build()),
+                                new AnyTask(new AtlassianModule("org.jfrog.bamboo.bamboo-artifactory-plugin:artifactoryGenericTask"))
+                                    .description(ob1.get("artiTaskDesc").toString())
+                                    .configuration(new MapBuilder()
+                                            .put("artifactory.generic.publishBuildInfo", "true")
+                                            .put("bintrayConfiguration", "")
+                                            .put("bintray.licenses", "")
+                                            .put("bintray.repository", "")
+                                            .put("artifactory.generic.username", ob1.get("artiUserName").toString())
+                                            .put("artifactory.generic.specSourceChoice", "jobConfiguration")
+                                            .put("artifactory.generic.resolveRepo", "")
+                                            .put("artifactory.generic.deployPattern", "")
+                                            .put("artifactory.generic.envVarsExcludePatterns", "*password*,*secret*,*security*,*key*")
+                                            .put("bintray.signMethod", "false")
+                                            .put("builder.artifactoryGenericBuilder.artifactoryServerId", "0")
+                                            .put("bintray.subject", "")
+                                            .put("artifactory.generic.file", "")
+                                            .put("artifactory.generic.useSpecsChoice", "specs")
+                                            .put("bintray.packageName", "")
+                                            .put("artifactory.generic.includeEnvVars", "")
+                                            .put("artifactory.generic.artifactSpecs", "")
+                                            .put("artifactory.generic.password", ob1.get("artiPassword").toString())
+                                            .put("bintray.mavenSync", "")
+                                            .put("artifactory.generic.jobConfiguration", ob1.get("artiArtifactPath").toString())
+                                            .put("baseUrl", ob1.get("artiServerUrl").toString())
+                                            .put("artifactory.generic.envVarsIncludePatterns", "")
+                                            .put("artifactory.generic.resolvePattern", "")
+                                            .put("bintray.vcsUrl", "")
+                                            .put("builder.artifactoryGenericBuilder.deployableRepo", "")
+                                            .put("bintray.gpgPassphrase", "/* SENSITIVE INFORMATION */")
+                                            .build()),
+                                new AnyTask(new AtlassianModule("com.atlassian.bamboo.plugins.tomcat.bamboo-tomcat-plugin:deployAppTask"))
+                                    .description(ob1.get("tomTaskDescription").toString())
+                                    .configuration(new MapBuilder()
+                                            .put("appVersion", "")
+                                            .put("tomcatUrl", ob1.get("tomServerUrl").toString())
+                                            .put("warFilePath", ob1.get("tomWarFilePath").toString())
+                                            .put("tomcatUsername", ob1.get("tomUserName").toString())
+                                            .put("deploymentTag", "")
+                                            .put("encTomcatPassword", ob1.get("tomEncPassword").toString())
+                                            .put("appContext", ob1.get("tomAppContext").toString())
+                                            .put("tomcat6", "")
+                                            .build()))))
+            .planRepositories(new GitHubRepository()
+                    .name(ob1.get("vcsRepoName").toString())
+                    .repositoryViewer(new GitHubRepositoryViewer())
+                    .repository(ob1.get("repoPath").toString())
+                    .branch(ob1.get("repoBranch").toString())
+                    .authentication(new UserPasswordAuthentication(ob1.get("repoUserName").toString())
+                            .password(ob1.get("repoEncPassword").toString()))
+                    .changeDetection(new VcsChangeDetection()))
+            
+            .triggers(new RepositoryPollingTrigger())
+            .planBranchManagement(new PlanBranchManagement()
+                    .delete(new BranchCleanup())
+                    .notificationForCommitters())
+            .forceStopHungBuilds();
+        return plan;
+    }
+    
+    public PlanPermissions planPermission() {
+    	Yml yml = new Yml();
+    	Map<String, Object> ob1 = yml.getYml();
+        final PlanPermissions planPermission = new PlanPermissions(new PlanIdentifier(ob1.get("bambooProjKey").toString(), ob1.get("bambooPlanKey").toString()))
+            .permissions(new Permissions()
+                    .userPermissions("admin", PermissionType.EDIT, PermissionType.VIEW, PermissionType.ADMIN, PermissionType.CLONE, PermissionType.BUILD)
+                    .loggedInUserPermissions(PermissionType.VIEW)
+                    .anonymousUserPermissionView());
+        return planPermission;
+    }
+    
+    public static void main(String... argv) {
+    	Yml yml = new Yml();
+    	Map<String, Object> ob1 = yml.getYml();
+    	System.out.println(ob1.get("bambooServer"));
+        //By default credentials are read from the '.credentials' file.
+        BambooServer bambooServer = new BambooServer(ob1.get("bambooServer").toString());
+        final PlanSpecs planSpecs = new PlanSpecs();
+        
+        final Plan plan = planSpecs.plan();
+        bambooServer.publish(plan);
+        
+        final PlanPermissions planPermission = planSpecs.planPermission();
+        bambooServer.publish(planPermission);
+    }
+}
